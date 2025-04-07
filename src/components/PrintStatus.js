@@ -10,9 +10,12 @@ const PrintStatus = () => {
     try {
       setLoading(true);
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/jobs`);
-      setJobs(response.data);
+      console.log('Resposta da API /jobs:', response.data); // 👈 debug
+      // Ajuste aqui se a resposta for { jobs: [...] }
+      setJobs(Array.isArray(response.data) ? response.data : response.data.jobs || []);
     } catch (error) {
       console.error('Erro ao buscar trabalhos de impressão:', error);
+      setJobs([]); // Evita erro no map se a requisição falhar
     } finally {
       setLoading(false);
     }
@@ -20,7 +23,6 @@ const PrintStatus = () => {
 
   useEffect(() => {
     fetchJobs();
-    // Atualizar a cada 5 segundos
     const interval = setInterval(fetchJobs, 5000);
     return () => clearInterval(interval);
   }, []);
@@ -51,10 +53,10 @@ const PrintStatus = () => {
       <button onClick={fetchJobs} className="refresh-button">
         Atualizar
       </button>
-      
+
       {loading ? (
         <p>Carregando trabalhos de impressão...</p>
-      ) : jobs.length > 0 ? (
+      ) : Array.isArray(jobs) && jobs.length > 0 ? (
         <table className="jobs-table">
           <thead>
             <tr>
